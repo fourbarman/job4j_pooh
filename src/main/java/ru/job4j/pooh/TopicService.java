@@ -18,10 +18,12 @@ public class TopicService implements Service {
     ConcurrentHashMap<String, ConcurrentHashMap<String, ConcurrentLinkedQueue<String>>> queues = new ConcurrentHashMap<>();
 
     /**
-     * If POST and queues contains topic than add data to all subscribers queues.
+     * If POST and queues contains topic than add data to all subscribers queues and return data in Resp with code 200.
      * If POST and queues doesn't have topic than ignore.
-     * If GET and queues contains topic and subscriber than return data from subscribers queue.
-     * If GET and queues doesn't have topic, than create new and create new subscribers queue.
+     * If GET and queues contains topic and subscriber than return data from subscribers queue with code 200.
+     * If GET and queues doesn't have topic, than create new and create new subscribers queue with code 200.
+     * If problems with returning data, than return Resp with code 204.
+     * If request type is unknown return Resp with code 501.
      *
      * @param req Server request.
      * @return Respond.
@@ -37,16 +39,19 @@ public class TopicService implements Service {
                 value.add(data);
             }
             return new Resp(data, "200");
-        }
-
-        if ("GET".equals(reqType)) {
+        } else if ("GET".equals(reqType)) {
             /* если топика нет, то добавим */
             queues.putIfAbsent(topicName, new ConcurrentHashMap<>());
             /* если нет данных подписчика в топике, то добавим новую очередь */
             queues.get(topicName).putIfAbsent(data, new ConcurrentLinkedQueue<>());
-            return new Resp(Optional.ofNullable(queues.get(topicName).get(data).poll()).orElse(""), "200");
+            var extracted = queues.get(topicName).get(data).poll();
+            if (extracted != null) {
+                return new Resp(extracted, "200");
+            } else {
+                return new Resp("", "204");
+            }
+        } else {
+            return new Resp("", "501");
         }
-
-        return new Resp("Something went wrong", "204");
     }
 }
