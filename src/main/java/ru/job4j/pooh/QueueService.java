@@ -37,9 +37,9 @@ public class QueueService implements Service {
             queues.get(name).add(data);
             return new Resp(data, "200");
         } else if ("GET".equals(reqType)) {
-            var polled = queues.get(name).poll();
-            if (polled != null) {
-                return new Resp(polled, "200");
+            var polledQueue = queues.get(name);
+            if (polledQueue != null) {
+                return new Resp(polledQueue.poll(), "200");
             } else {
                 return new Resp("", "204");
             }
