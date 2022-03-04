@@ -21,7 +21,7 @@ public class QueueService implements Service {
      * If POST request, than post data to queue tail (if map already contains queue with given name,
      * otherwise create new queue with given name)
      * and return in Resp with code 200.
-     * If problems with returning data, than return Resp with code 204.
+     * If problems with returning data (no such sourceName or empty queue), than return Resp with code 204.
      * If request type is unknown return Resp with code 501.
      *
      * @param req Server request.
@@ -38,7 +38,7 @@ public class QueueService implements Service {
             return new Resp(data, "200");
         } else if ("GET".equals(reqType)) {
             var polledQueue = queues.get(name);
-            if (polledQueue != null) {
+            if (polledQueue != null && polledQueue.peek() != null) {
                 return new Resp(polledQueue.poll(), "200");
             } else {
                 return new Resp("", "204");

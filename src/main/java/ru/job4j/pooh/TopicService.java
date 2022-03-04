@@ -35,10 +35,14 @@ public class TopicService implements Service {
         var data = req.getParam();
 
         if ("POST".equals(reqType)) {
-            for (ConcurrentLinkedQueue<String> value : queues.get(topicName).values()) {
-                value.add(data);
+            if (queues.get(topicName) != null) {
+                for (ConcurrentLinkedQueue<String> value : queues.get(topicName).values()) {
+                    value.add(data);
+                }
+                return new Resp(data, "200");
+            } else {
+                return new Resp("", "204");
             }
-            return new Resp(data, "200");
         } else if ("GET".equals(reqType)) {
             /* если топика нет, то добавим */
             queues.putIfAbsent(topicName, new ConcurrentHashMap<>());

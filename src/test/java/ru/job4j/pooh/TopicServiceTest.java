@@ -39,6 +39,50 @@ public class TopicServiceTest {
                 new Req("GET", "topic", "weather", paramForSubscriber2)
         );
         assertThat(result1.text(), is("temperature=18"));
+        assertThat(result1.status(), is("200"));
         assertThat(result2.text(), is(""));
+        assertThat(result2.status(), is("204"));
+    }
+
+    /**
+     * Test process in topic mode when request type is undefined
+     * than return empty text and status 501.
+     */
+    @Test
+    public void whenUndefinedRequestTypeThenReturnEmptyTextAndStatus501() {
+        TopicService topicService = new TopicService();
+        Resp result = topicService.process(
+                new Req("undefined", "topic", "weather", "param")
+        );
+        assertThat(result.text(), is(""));
+        assertThat(result.status(), is("501"));
+    }
+
+    /**
+     * Test process in topic mode when POST without run GET first
+     * than return empty text string and 204 status.
+     */
+    @Test
+    public void whenPostFirstThanReturnEmptyTextAndStatus204() {
+        TopicService topicService = new TopicService();
+        Resp result = topicService.process(
+                new Req("POST", "topic", "weather", "param")
+        );
+        assertThat(result.text(), is(""));
+        assertThat(result.status(), is("204"));
+    }
+
+    /**
+     * Test process in topic mode when GET and didn't subscribed yet
+     * than return empty text and status 204.
+     */
+    @Test
+    public void whenGetAndNoSourceNameThanCreateNewAndReturnEmptyTextAndStatus204() {
+        TopicService topicService = new TopicService();
+        Resp result = topicService.process(
+                new Req("GET", "topic", "weather", "subscriberId")
+        );
+        assertThat(result.text(), is(""));
+        assertThat(result.status(), is("204"));
     }
 }
